@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from pandas.api.types import CategoricalDtype
 import calendar
+import plotly.graph_objects as go
 
 st.set_page_config(layout="wide")
 
@@ -70,7 +71,7 @@ if page == "Rainfall Trends":
     min_value=start,
     max_value=end,
     value=(start, end),
-    format="YYYY-MM-DD")
+    format="YYYY-MM-DD", key="date1")
 
     # Filter data
     filtered_df = df[
@@ -89,7 +90,7 @@ if page == "Rainfall Trends":
 
     fig.update_traces(line=dict(color="royalblue"))
     fig.update_layout(
-        title_x=0.3,
+        title = {"text": f"3-Month Rolling Rainfall in {selected_district}", "x": 0.5,"xanchor": "center"},
         margin=dict(l=40, r=40, t=60, b=40),
         hovermode="x unified",
         height=500)
@@ -165,7 +166,64 @@ if page == "Rainfall Trends":
     with col2:
         st.plotly_chart(line_fig, use_container_width=True)
 
+    # Third Plot
+    st.subheader("🌧️ Rainfall Anomalies")
 
+    # District selector
+    districts = sorted(df["districts"].dropna().unique())
+    selected_district = st.selectbox("Select District", districts, key="dist3")
+
+    # Year selector (slider)
+    start = df['date'].min().to_pydatetime()
+    end = df['date'].max().to_pydatetime()
+    start_date, end_date = st.slider(
+    "Select Date Range",
+    min_value=start,
+    max_value=end,
+    value=(start, end),
+    format="YYYY-MM-DD", key="date2")
+
+    # Filter and sort data
+    anomaly_df = df[
+        (df["districts"] == selected_district) & (df["date"] >= start_date) & (df["date"] <= end_date)]
+    anomaly_df = anomaly_df.sort_values("date")
+
+    # Create combined figure
+    fig = go.Figure()
+
+    # Anomaly line
+    fig.add_trace(go.Scatter(
+        x=anomaly_df["date"],
+        y=anomaly_df["r3q"],
+        mode='lines+markers',
+        name='r3q Anomaly',
+        line=dict(color='royalblue', width=2),
+        marker=dict(size=4)))
+
+    # Baseline at 0.5
+    fig.add_shape(
+        type='line',
+        x0=anomaly_df["date"].min(),
+        x1=anomaly_df["date"].max(),
+        y0=100,
+        y1=100,
+        line=dict(color='red', dash='dash'),
+        name="Normal Line")
+
+    # Layout tweaks
+    fig.update_layout(
+        title={"text": f"Rainfall Anomalies Over Time - {selected_district}", "x": 0.5, "xanchor": "center"},
+        xaxis_title="Date",
+        yaxis_title="Anomaly % (r3q)",
+        yaxis_range=[0, 350],
+        hovermode="x unified",
+        showlegend=False,
+        height=500,
+        template="plotly_white",
+        margin=dict(l=20, r=20, t=60, b=20))
+
+    # Show chart
+    st.plotly_chart(fig, use_container_width=True)
     
 
 if page == "Overview":
