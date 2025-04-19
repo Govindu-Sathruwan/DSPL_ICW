@@ -3,9 +3,13 @@ import plotly.express as px
 import seaborn as sns
 import numpy as np
 import pandas as pd
+from pandas.api.types import CategoricalDtype
+import calendar
+
+st.set_page_config(layout="wide")
 
 # Title
-st.title("🌧️ Rainfall Dashboard - Sri Lanka")
+st.markdown("<h1 style='text-align: center; color: white;'>🌧️ Rainfall Dashboard - Sri Lanka</h1>", unsafe_allow_html=True)
 
 # getting the data
 df=pd.read_csv("preprocessed_dataset.csv", parse_dates=["date"])
@@ -51,11 +55,12 @@ set_background(backgrounds[page])
 
 # Conditional rendering
 if page == "Rainfall Trends":
-    st.markdown("<h2 style='color: white;'>📈 Rainfall Trends Over Time</h2>", unsafe_allow_html=True)
+    # First Plot
+    st.subheader("📈 Rainfall Trends Over Time")
 
     # District selector
     districts = sorted(df["districts"].dropna().unique())
-    selected_district = st.selectbox("Select District", districts)
+    selected_district = st.selectbox("Select District", districts, key="dist1")
 
     # Date slider
     start = df['date'].min().to_pydatetime()
@@ -91,6 +96,76 @@ if page == "Rainfall Trends":
 
     # Show chart
     st.plotly_chart(fig, use_container_width=True)
+
+    # Second Plot
+    st.subheader("📉 Actual Vs Historical Average Rainfall")
+
+    # Dropdowns side-by-side
+    col1, col2 = st.columns(2)
+    with col1:
+        selected_district = st.selectbox("Select District", sorted(df["districts"].dropna().unique()), key="dist2")
+    with col2:
+        selected_year = st.selectbox("Select Year", sorted(df["Year"].unique(), reverse=True))
+    
+    # Filter data
+    filtered_df2 = df[(df["districts"] == selected_district) & (df["Year"] == selected_year)]
+    
+    # Manual month name mapping
+    month_map = {
+        "January": "Jan", "February": "Feb", "March": "Mar", "April": "Apr",
+        "May": "May", "June": "Jun", "July": "Jul", "August": "Aug",
+        "September": "Sep", "October": "Oct", "November": "Nov", "December": "Dec"}
+    
+    # Monthly aggregation
+    month_order = list(calendar.month_abbr)[1:]
+    monthly_df = filtered_df2.groupby("Month")[["r3h", "r3h_avg"]].mean().reset_index()
+    # Apply mapping
+    monthly_df["Month"] = monthly_df["Month"].map(month_map)
+    monthly_df["Month"] = monthly_df["Month"].astype(CategoricalDtype(categories=month_order, ordered=True))
+    monthly_df = monthly_df.sort_values("Month")
+    
+    # Plotly Bar Chart: Actual vs Average
+    bar_fig = px.bar(
+    monthly_df,
+    x="Month",
+    y=["r3h", "r3h_avg"],
+    barmode="group",
+    labels={"value": "Rainfall (mm)", "Month": "Month"},
+    title="Actual vs Historical Average Rainfall",
+    color_discrete_map={"r3h": "royalblue", "r3h_avg": "darkorange"})
+
+    bar_fig.update_traces( selector=dict(name='r3h'), name="Actual")
+    bar_fig.update_traces( selector=dict(name='r3h_avg'), name="Historical Average")
+
+    bar_fig.update_layout(
+        title = {"text": "Actual vs Historical Average Rainfall", "x": 0.5,"xanchor": "center"},
+        margin=dict(l=20, r=20, t=60, b=20), height=400)
+
+    # Plotly Line Chart
+    line_fig = px.line(
+    monthly_df,
+    x="Month",
+    y=["r3h", "r3h_avg"],
+    labels={"value": "Rainfall (mm)", "Month": "Month"},
+    title="Actual vs Historical Average Rainfall",
+    markers=True,
+    color_discrete_map={"r3h": "royalblue", "r3h_avg": "darkorange"})
+
+    line_fig.update_traces( selector=dict(name='r3h'), name="Actual")
+    line_fig.update_traces( selector=dict(name='r3h_avg'), name="Historical Average")
+
+    line_fig.update_layout(
+        title = {"text": "Actual vs Historical Average Rainfall", "x": 0.5,"xanchor": "center"},
+        margin=dict(l=20, r=20, t=60, b=20), height=400)
+
+    # Display side-by-side
+    col1, col2 = st.columns([1,1])
+    with col1:
+        st.plotly_chart(bar_fig, use_container_width=True)
+    with col2:
+        st.plotly_chart(line_fig, use_container_width=True)
+
+
     
 
 if page == "Overview":
