@@ -1,15 +1,20 @@
 import streamlit as st
+import plotly.express as px
+import seaborn as sns
+import numpy as np
+import pandas as pd
 
 # Title
 st.title("🌧️ Rainfall Dashboard - Sri Lanka")
 
-import pandas as pd
 # getting the data
 df=pd.read_csv("preprocessed_dataset.csv", parse_dates=["date"])
 
 # Sidebar
 st.sidebar.title("Navigation")
 page = st.sidebar.selectbox("Go to ⬇️", ["Rainfall Trends", "Overview", "Decision Support", "Multilingual", "About"])
+st.sidebar.title("Languages")
+language = st.sidebar.selectbox("Select Prefered Language ⬇️", ["English","Sinhala", "Tamil"])
 
 # Backgrounds
 backgrounds = {
@@ -45,6 +50,49 @@ def set_background(image_url):
 set_background(backgrounds[page])
 
 # Conditional rendering
+if page == "Rainfall Trends":
+    st.markdown("<h2 style='color: white;'>📈 Rainfall Trends Over Time</h2>", unsafe_allow_html=True)
+
+    # District selector
+    districts = sorted(df["districts"].dropna().unique())
+    selected_district = st.selectbox("Select District", districts)
+
+    # Date slider
+    start = df['date'].min().to_pydatetime()
+    end = df['date'].max().to_pydatetime()
+    start_date, end_date = st.slider(
+    "Select Date Range",
+    min_value=start,
+    max_value=end,
+    value=(start, end),
+    format="YYYY-MM-DD")
+
+    # Filter data
+    filtered_df = df[
+        (df["districts"] == selected_district) &
+        (df["date"] >= start_date) &
+        (df["date"] <= end_date)]
+    
+    # Plot with Plotly
+    fig = px.line(
+        filtered_df,
+        x="date",
+        y="r3h",
+        title=f"3-Month Rolling Rainfall in {selected_district}",
+        labels={"r3h": "Rainfall (mm)", "date": "Date"},
+        template="plotly_white")
+
+    fig.update_traces(line=dict(color="royalblue"))
+    fig.update_layout(
+        title_x=0.3,
+        margin=dict(l=40, r=40, t=60, b=40),
+        hovermode="x unified",
+        height=500)
+
+    # Show chart
+    st.plotly_chart(fig, use_container_width=True)
+    
+
 if page == "Overview":
     st.header("Dataset Summary")
     st.markdown("<h2 style='font-size: 30px; color: teal;'>Dataset Sample (for exploration)</h2>", unsafe_allow_html=True)
