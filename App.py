@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 st.set_page_config(layout="wide")
 
 # Title
-st.markdown("<h1 style='text-align: center; color: white;'>🌧️ Rainfall Dashboard - Sri Lanka</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: white;'>Rainfall Dashboard 🌧️ - Sri Lanka</h1>", unsafe_allow_html=True)
 
 # getting the data
 df=pd.read_csv("preprocessed_dataset.csv", parse_dates=["date"])
@@ -63,7 +63,55 @@ set_background(backgrounds[page])
 # Conditional rendering
 if page == "Rainfall Trends":
 
-    # First Plot
+    #First Plot
+    st.subheader("Rainfall By District")
+
+    # correct month ordering
+    month_order = list(calendar.month_name)[1:]
+    df["Month"] = df["Month"].astype(CategoricalDtype(categories=month_order, ordered=True))
+    sorted_months = df["Month"].dropna().unique().tolist()
+
+    # Selectboxes
+    col1, col2 = st.columns(2)
+    with col1:
+        selected_year = st.selectbox("Select Year", sorted(df["Year"].unique(), reverse=True), key="yearM")
+    with col2:
+        selected_month = st.selectbox("Select Month", sorted_months, key="monthM")
+
+    # Clean shapeISO 
+    for f in geojson_data["features"]:
+        if "shapeISO" in f["properties"]:
+            f["properties"]["shapeISO"] = f["properties"]["shapeISO"].replace("-", "")
+
+    # Filter and group your data
+    filtered_df4 = df[(df["Year"] == selected_year) & (df["Month"] == selected_month)]
+    monthly_avg = filtered_df4.groupby("ADM2_PCODE", as_index=False)["r3h"].mean()
+
+    # Create mapbox choropleth
+    fig_map = px.choropleth_mapbox(
+        monthly_avg,
+        geojson=geojson_data,
+        locations="ADM2_PCODE",
+        featureidkey="properties.shapeISO",
+        color="r3h",
+        labels={"r3h": "Rainfall(mm)"},
+        color_continuous_scale="Blues",
+        range_color=(0, 1000),
+        mapbox_style="carto-darkmatter",
+        zoom=6,
+        center={"lat": 7.8731, "lon": 80.7718}, 
+        opacity=0.85,
+        hover_data={"ADM2_PCODE": True, "r3h": ":.2f"},
+        title=f"Rainfall Distribution - {selected_month} {selected_year}")
+
+    # Layout
+    fig_map.update_layout(
+        margin={"r": 0, "t": 50, "l": 0, "b": 0},
+        title={
+        "text": f"Rainfall Distribution - {selected_month} {selected_year}","x": 0.5,"xanchor": "center"})
+    st.plotly_chart(fig_map, use_container_width=True)
+
+    # Second Plot
     st.subheader("📈 Rainfall Trends Over Time")
 
     # District selector
@@ -102,10 +150,9 @@ if page == "Rainfall Trends":
         hovermode="x unified",
         height=500)
 
-    # Show chart
     st.plotly_chart(fig, use_container_width=True)
 
-    # Second Plot
+    # Third Plot
     st.subheader("📉 Actual Vs Historical Average Rainfall")
 
     # Dropdowns side-by-side
@@ -173,7 +220,7 @@ if page == "Rainfall Trends":
     with col2:
         st.plotly_chart(line_fig, use_container_width=True)
 
-    # Third Plot
+    # Fourth Plot
     st.subheader("🌧️ Rainfall Anomalies")
 
     # District selector
@@ -232,7 +279,7 @@ if page == "Rainfall Trends":
     # Show chart
     st.plotly_chart(fig, use_container_width=True)
     
-    # Fourth Plot
+    # Fifth Plot
     st.subheader("📊 Rainfall Distribution for Selected Month and District")
 
     #Dropdowns: District and Month
@@ -240,7 +287,7 @@ if page == "Rainfall Trends":
     with col1:
         selected_district = st.selectbox("Select District", sorted(df["districts"].dropna().unique()), key="dist4")
     with col2:
-        selected_month = st.selectbox("Select Month", sorted(df["Month"].dropna().unique()), key="month4")
+        selected_month = st.selectbox("Select Month", sorted_months, key="month4")
 
     #Filter Data
     violin_df = df[(df["districts"] == selected_district) & (df["Month"] == selected_month)].copy()
@@ -253,7 +300,8 @@ if page == "Rainfall Trends":
         box=True,
         points="all",
         color_discrete_sequence=["royalblue"],
-        title=f"Rainfall Distribution for {selected_month} - {selected_district}")
+        title=f"Rainfall Distribution for {selected_month} in the {selected_district} District through the years",
+        hover_data=["Year"])
 
     fig.update_layout(
         height=500,
@@ -263,6 +311,9 @@ if page == "Rainfall Trends":
         margin={"l": 20, "r": 20, "t": 60, "b": 20})
 
     st.plotly_chart(fig, use_container_width=True)
+
+
+
 
 
 
