@@ -6,6 +6,9 @@ import pandas as pd
 from pandas.api.types import CategoricalDtype
 import calendar
 import plotly.graph_objects as go
+import json 
+import geopandas as gpd
+import matplotlib.pyplot as plt
 
 st.set_page_config(layout="wide")
 
@@ -14,6 +17,9 @@ st.markdown("<h1 style='text-align: center; color: white;'>🌧️ Rainfall Dash
 
 # getting the data
 df=pd.read_csv("preprocessed_dataset.csv", parse_dates=["date"])
+
+with open("geoBoundaries-LKA-ADM2.geojson", "r") as f: 
+    geojson_data = json.load(f)
 
 # Sidebar
 st.sidebar.title("Navigation")
@@ -56,6 +62,7 @@ set_background(backgrounds[page])
 
 # Conditional rendering
 if page == "Rainfall Trends":
+
     # First Plot
     st.subheader("📈 Rainfall Trends Over Time")
 
@@ -225,6 +232,39 @@ if page == "Rainfall Trends":
     # Show chart
     st.plotly_chart(fig, use_container_width=True)
     
+    # Fourth Plot
+    st.subheader("📊 Rainfall Distribution for Selected Month and District")
+
+    #Dropdowns: District and Month
+    col1, col2 = st.columns(2)
+    with col1:
+        selected_district = st.selectbox("Select District", sorted(df["districts"].dropna().unique()), key="dist4")
+    with col2:
+        selected_month = st.selectbox("Select Month", sorted(df["Month"].dropna().unique()), key="month4")
+
+    #Filter Data
+    violin_df = df[(df["districts"] == selected_district) & (df["Month"] == selected_month)].copy()
+
+    #Plotly Violin Plot
+    fig = px.violin(
+        violin_df,
+        x="Month",
+        y="r3h", 
+        box=True,
+        points="all",
+        color_discrete_sequence=["royalblue"],
+        title=f"Rainfall Distribution for {selected_month} - {selected_district}")
+
+    fig.update_layout(
+        height=500,
+        title= {
+        "text": f"Rainfall Distribution for {selected_month} in the {selected_district} District through the years","x": 0.5,"xanchor": "center"},
+        yaxis_title="Rainfall (mm)",
+        margin={"l": 20, "r": 20, "t": 60, "b": 20})
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
 
 if page == "Overview":
     st.header("Dataset Summary")
