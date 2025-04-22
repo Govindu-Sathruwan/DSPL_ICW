@@ -443,4 +443,49 @@ if page == "Overview":
     st.plotly_chart(fig, use_container_width=True)
 
 if page == "About":
-    st.header("About")
+
+    st.markdown("""
+        <div style='color: white; font-size: 16px; line-height: 1.7;'>
+
+        ### Objectives of the Dashboard  
+        The primary objectives of this dashboard are to:
+
+        -  **Analyze temporal and spatial rainfall trends** across Sri Lanka to identify patterns and deviations.  
+        -  **Highlight anomalies and extreme events** (droughts or unusually wet periods) to be prepared.  
+        -  **Visualize district-level rainfall** to help understand localized impacts on agriculture and water availability.  
+        -  **Compare actual rainfall with long-term historical averages** to assess the severity of climate variation.  
+        -  **Assist policymakers, farmers, and energy planners** by providing accessible insights into rainfall behavior.  
+
+        These objectives align with the broader goal of supporting **climate resilience, food security**, and **hydropower management** in Sri Lanka.
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<h3 style='text-align: left; color: white;'>About This Project</h3>", unsafe_allow_html=True)
+
+    st.markdown("""
+    <div style='color: white; font-size: 16px; line-height: 1.7;'>
+
+    Built using **Streamlit**, it includes visualizations like:
+    - Rainfall trends over time
+    - Rainfall anomalies
+    - Choropleth maps by district
+    - Heatmaps and summary KPIs
+
+    ### Data Sources  
+    - **Rainfall data:** https://data.humdata.org/dataset/lka-rainfall-subnational  
+    - **Geospatial data:** https://data.humdata.org/dataset/cod-ab-lka
+    - **Background Images:** https://unsplash.com/s/photos/rain?orientation=landscape&license=free
+    
+    <Br>
+    <Br>
+    <Br>
+    <Br>
+                    
+    #### 👤 Created By  
+    **Govindu Sathruwan**  
+    BSc (Hons) Business Data Analytics  
+    University of Westminster | IIT Sri Lanka <Br>
+    GitHub: https://github.com/Govindu-Sathruwan 
+    </div>
+    """, unsafe_allow_html=True)
+
