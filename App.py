@@ -44,9 +44,6 @@ st.markdown(f"""
 
 st.sidebar.title("Navigation")
 page = st.sidebar.selectbox("Go to ⬇️", ["Rainfall Trends", "Overview", "About"])
-st.sidebar.markdown("<br>" "<br>" "<br>", unsafe_allow_html=True)
-st.sidebar.title("Languages")
-language = st.sidebar.selectbox("Select Prefered Language ⬇️", ["English","Sinhala", "Tamil"])
 
 # Backgrounds
 backgrounds = {
