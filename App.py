@@ -22,17 +22,36 @@ with open("geoBoundaries-LKA-ADM2.geojson", "r") as f:
     geojson_data = json.load(f)
 
 # Sidebar
+sidebar_image = "https://images.unsplash.com/photo-1647884203284-ba16820086ed?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+st.markdown(f"""
+    <style>
+        .stSidebar{{
+            background-image: url("{sidebar_image}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;}}
+        .stSidebar::before {{
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);  /* black tint, 0.5 opacity */
+            z-index: 0;}}
+    </style>
+""", unsafe_allow_html=True)
+
 st.sidebar.title("Navigation")
-page = st.sidebar.selectbox("Go to ⬇️", ["Rainfall Trends", "Overview", "Decision Support", "Multilingual", "About"])
+page = st.sidebar.selectbox("Go to ⬇️", ["Rainfall Trends", "Overview", "About"])
+st.sidebar.markdown("<br>" "<br>" "<br>", unsafe_allow_html=True)
 st.sidebar.title("Languages")
 language = st.sidebar.selectbox("Select Prefered Language ⬇️", ["English","Sinhala", "Tamil"])
 
 # Backgrounds
 backgrounds = {
     "Rainfall Trends": "https://images.unsplash.com/photo-1523772721666-22ad3c3b6f90?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "Overview": "https://images.unsplash.com/photo-1511634829096-045a111727eb?q=80&w=1934&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "Decision Support": "https://images.unsplash.com/photo-1496034663057-6245f11be793?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "Multilingual": "https://images.unsplash.com/photo-1685430996137-b92678138c0b?q=80&w=1774&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "Overview": "https://images.unsplash.com/photo-1685430996137-b92678138c0b?q=80&w=1774&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     "About": "https://images.unsplash.com/photo-1498847559558-1e4b1a7f7a2f?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
 }
 # Function to set background
@@ -386,13 +405,12 @@ if page == "Rainfall Trends":
         margin=dict(l=20, r=20, t=60, b=20))
     st.plotly_chart(fig, use_container_width=True)
 
-
-
-
-
 if page == "Overview":
-    st.header("Dataset Summary")
-    st.markdown("<h2 style='font-size: 30px; color: teal;'>Dataset Sample (for exploration)</h2>", unsafe_allow_html=True)
-    st.write(df.head(25))
-    st.subheader("Descriptive Statistics")
+    st.header("Dataset Overview")
+    st.markdown("<h2 style='font-size: 30px; color: white; text-align: center'>Dataset Sample (for exploration)</h2>", unsafe_allow_html=True)
+    st.write(df.head(30))
+    st.markdown("<h2 style='font-size: 30px; color: white; text-align: center'>Descriptive Statistics</h2>", unsafe_allow_html=True)
     st.write(df[["Year", "Month", "Day", "districts", "n_pixels", "rfh", "rfh_avg", "r1h", "r1h_avg", "r3h", "r3h_avg", "rfq", "r1q", "r3q"]].describe())
+
+if page == "About":
+    st.header("About")
