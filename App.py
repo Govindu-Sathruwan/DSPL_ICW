@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 st.set_page_config(layout="wide")
 
 # Title
-st.markdown("<h1 style='text-align: center; color: white;'>Rainfall Dashboard 🌧️ - Sri Lanka</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: white;'>Rainfall Dashboard - Sri Lanka</h1>", unsafe_allow_html=True)
 
 # getting the data
 df=pd.read_csv("preprocessed_dataset.csv", parse_dates=["date"])
@@ -64,7 +64,7 @@ set_background(backgrounds[page])
 if page == "Rainfall Trends":
 
     #First Plot
-    st.subheader("Rainfall By District")
+    st.subheader(" 🌧️ Rainfall By District")
 
     # correct month ordering
     month_order = list(calendar.month_name)[1:]
@@ -115,8 +115,14 @@ if page == "Rainfall Trends":
     st.subheader("📈 Rainfall Trends Over Time")
 
     # District selector
-    districts = sorted(df["districts"].dropna().unique())
-    selected_district = st.selectbox("Select District", districts, key="dist1")
+    col1, col2 = st.columns(2)
+    with col1:
+        districts = sorted(df["districts"].dropna().unique())
+        selected_district = st.selectbox("Select District", districts, key="dist1")
+    with col2:
+        measure_options = {"3-Month Rolling": "r3h", "1-Month Rolling": "r1h", "10-Day": "rfh"}
+        selected_measure_label = st.selectbox("Select Rainfall Measure", list(measure_options.keys()), key="measure1")
+        selected_measure = measure_options[selected_measure_label]
 
     # Date slider
     start = df['date'].min().to_pydatetime()
@@ -129,23 +135,20 @@ if page == "Rainfall Trends":
     format="YYYY-MM-DD", key="date1")
 
     # Filter data
-    filtered_df = df[
-        (df["districts"] == selected_district) &
-        (df["date"] >= start_date) &
-        (df["date"] <= end_date)]
+    filtered_df = df[(df["districts"] == selected_district) & (df["date"] >= start_date) & (df["date"] <= end_date)]
     
     # Plot with Plotly
     fig = px.line(
-        filtered_df,
-        x="date",
-        y="r3h",
-        title=f"3-Month Rolling Rainfall in {selected_district}",
-        labels={"r3h": "Rainfall (mm)", "date": "Date"},
-        template="plotly_white")
+    filtered_df,
+    x="date",
+    y=selected_measure,
+    title=f"{selected_measure_label} Rainfall in {selected_district}",
+    labels={selected_measure: "Rainfall (mm)", "date": "Date"},
+    template="plotly_white")
 
     fig.update_traces(line=dict(color="royalblue"))
     fig.update_layout(
-        title = {"text": f"3-Month Rolling Rainfall in {selected_district}", "x": 0.5,"xanchor": "center"},
+        title = {"text": f"{selected_measure_label} Rainfall in {selected_district}", "x": 0.5,"xanchor": "center"},
         margin=dict(l=40, r=40, t=60, b=40),
         hovermode="x unified",
         height=500)
@@ -312,6 +315,34 @@ if page == "Rainfall Trends":
 
     st.plotly_chart(fig, use_container_width=True)
 
+    # Sixth plot
+    st.subheader("📆 Monthly Rainfall Heatmap")
+    selected_district = st.selectbox("Select District", sorted(df["districts"].dropna().unique()), key="dist6")
+    heatmap_df = df[df["districts"] == selected_district].copy()
+    month_order = list(calendar.month_name)[1:]
+    heatmap_df["Month"] = heatmap_df["Month"].astype(CategoricalDtype(categories=month_order, ordered=True))
+    
+    matrix_df = heatmap_df.pivot_table(
+        index="Month",
+        columns="Year",
+        values="r3h",
+        aggfunc="mean").reindex(month_order)
+
+    # Plot as a heatmap
+    fig = px.imshow(
+        matrix_df,
+        labels=dict(x="Year", y="Month", color="Rainfall (mm)"),
+        x=matrix_df.columns,
+        y=matrix_df.index,
+        color_continuous_scale="Blues",
+        zmin=0,
+        zmax=1250)
+
+    fig.update_layout(
+        title={"text": f"Rainfall Heatmap Calendar - {selected_district}", "x": 0.5, "xanchor": "center"},
+        height=500,
+        margin=dict(l=20, r=20, t=60, b=20))
+    st.plotly_chart(fig, use_container_width=True)
 
 
 
