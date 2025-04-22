@@ -63,6 +63,48 @@ set_background(backgrounds[page])
 # Conditional rendering
 if page == "Rainfall Trends":
 
+    # KPI Cards
+    st.subheader("🌧️ Rainfall Summary")
+
+    #Year selector
+    selected_year = st.selectbox("Select Year", sorted(df["Year"].unique(), reverse=True), key="year7")
+
+    #Filter data for selected year
+    year_df = df[df["Year"] == selected_year]
+
+    total_rainfall = year_df["r3h"].sum()
+
+    # Wettest and driest month
+    monthly_rain = year_df.groupby("Month")["r3h"].sum()
+    wettest_month = monthly_rain.idxmax()
+    wettest_month_val = monthly_rain.max()
+    driest_month = monthly_rain.idxmin()
+    driest_month_val = monthly_rain.min()
+
+    # Wettest and driest district
+    district_rain = year_df.groupby("districts")["r3h"].sum()
+    wettest_district = district_rain.idxmax()
+    wettest_district_val = district_rain.max()
+    driest_district = district_rain.idxmin()
+    driest_district_val = district_rain.min()
+
+    # Display as KPI cards
+    spacer1, col1, col2, col3 = st.columns([1, 2, 2, 2])
+    with col1:
+        st.metric("💧 Total Rainfall (mm)", f"{total_rainfall:,.0f}")
+    with col2:
+        st.metric("🌧️ Wettest Month", f"{wettest_month}", f"{wettest_month_val:.1f} mm")
+    with col3:
+        st.metric("🌤️ Driest Month", f"{driest_month}", f"{driest_month_val:.1f} mm")
+
+    spacer1, col4, col5 = st.columns([2, 3, 3])
+    with col4:
+        st.metric("🌊 Wettest District", f"{wettest_district}", f"{wettest_district_val:.1f} mm")
+    with col5:
+        st.metric("🌵 Driest District", f"{driest_district}", f"{driest_district_val:.1f} mm")
+
+
+
     #First Plot
     st.subheader(" 🌧️ Rainfall By District")
 
