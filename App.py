@@ -406,11 +406,41 @@ if page == "Rainfall Trends":
     st.plotly_chart(fig, use_container_width=True)
 
 if page == "Overview":
+
+    st.metric("📅 Date Range", f"{df['date'].min().date()} → {df['date'].max().date()}")
+    st.metric("📍 Districts Covered", df['districts'].nunique())
+    st.metric("🧮 Total Records", len(df))
+
     st.header("Dataset Overview")
+
+    with st.expander("ℹ️ Rainfall Variable Descriptions"):
+        st.markdown("""
+        **rfh**:       10-day rainfall total [mm]  
+        **r1h**:       1-month rolling rainfall total [mm]  
+        **r3h**:       3-month rolling rainfall total [mm]  
+        **rfh_avg**:   Long-term average of 10-day rainfall [mm]  
+        **r1h_avg**:   Long-term average of 1-month rainfall [mm]  
+        **r3h_avg**:   Long-term average of 3-month rainfall [mm]  
+        **rfq**:       Rainfall anomaly [%]  
+        **r1q**:       1-month rainfall anomaly [%]  
+        **r3q**:       3-month rainfall anomaly [%]
+        """)
+
     st.markdown("<h2 style='font-size: 30px; color: white; text-align: center'>Dataset Sample (for exploration)</h2>", unsafe_allow_html=True)
     st.write(df.head(30))
+
     st.markdown("<h2 style='font-size: 30px; color: white; text-align: center'>Descriptive Statistics</h2>", unsafe_allow_html=True)
     st.write(df[["Year", "Month", "Day", "districts", "n_pixels", "rfh", "rfh_avg", "r1h", "r1h_avg", "r3h", "r3h_avg", "rfq", "r1q", "r3q"]].describe())
+
+    st.markdown("<h2 style='text-align: center; color: white;'>Data Types</h2>", unsafe_allow_html=True)
+    dtypes_df = pd.DataFrame(df.dtypes, columns=["Data Type"])
+    st.dataframe(dtypes_df)
+
+    st.markdown("<h2 style='text-align: center; color: white;'>Rainfall Distribution</h2>", unsafe_allow_html=True)
+    selected_col = st.selectbox("Select a Rainfall Column", [ "rfh", "rfh_avg", "r1h", "r1h_avg", "r3h", "r3h_avg", "rfq", "r1q", "r3q"], key="measure02")
+    fig = px.histogram(df, x=selected_col, nbins=50, title=f"Distribution of {selected_col}")
+    fig.update_layout(title_x=0.5)
+    st.plotly_chart(fig, use_container_width=True)
 
 if page == "About":
     st.header("About")
